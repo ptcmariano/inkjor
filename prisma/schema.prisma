@@ -1,0 +1,222 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id          String   @id @default(uuid())
+  email       String   @unique
+  nome        String
+  foto        String?
+  dataCriacao DateTime @default(now()) @map("data_criacao")
+  nivel       Int      @default(1)
+  xpTotal     Int      @default(0) @map("xp_total")
+
+  tattoos            Tattoo[]
+  pontosTransacoes   PontosTransacao[]
+  recompensasUsuario RecompensaUsuario[]
+  creditos           Credito?
+  creditosTransacoes CreditoTransacao[]
+  missoesUsuario     MissaoUsuario[]
+
+  @@index([email])
+  @@map("users")
+}
+
+model Tattoo {
+  id               String    @id @default(uuid())
+  userId           String    @map("user_id")
+  fotoUrl          String    @map("foto_url")
+  localizacaoCorpo String    @map("localizacao_corpo")
+  dataAproximada   DateTime? @map("data_aproximada")
+  significado      String?   @db.Text
+  dataCriacao      DateTime  @default(now()) @map("data_criacao")
+  dataAtualizacao  DateTime  @updatedAt @map("data_atualizacao")
+
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pontosTransacoes PontosTransacao[]
+
+  @@index([userId])
+  @@index([dataCriacao])
+  @@map("tattoos")
+}
+
+model PontosTransacao {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  tipoAcao    String   @map("tipo_acao")
+  quantidade  Int
+  descricao   String?  @db.Text
+  dataHora    DateTime @default(now()) @map("data_hora")
+  tattooIdRef String?  @map("tattoo_id_ref")
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tattoo Tattoo? @relation(fields: [tattooIdRef], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([dataHora])
+  @@index([tipoAcao])
+  @@map("pontos_transacoes")
+}
+
+model Parceiro {
+  id          String   @id @default(uuid())
+  nome        String
+  tipo        String
+  logoUrl     String?  @map("logo_url")
+  descricao   String?  @db.Text
+  contato     String?
+  dataCriacao DateTime @default(now()) @map("data_criacao")
+
+  recompensas           Recompensa[]
+  campanhasPatrocinadas CampanhaPatrocinada[]
+
+  @@index([tipo])
+  @@map("parceiros")
+}
+
+model Recompensa {
+  id          String   @id @default(uuid())
+  nome        String
+  descricao   String?  @db.Text
+  tipo        String
+  custoPontos Int      @map("custo_pontos")
+  parceiroId  String?  @map("parceiro_id")
+  estoque     Int      @default(0)
+  dataCriacao DateTime @default(now()) @map("data_criacao")
+  ativa       Boolean  @default(true)
+
+  parceiro           Parceiro?           @relation(fields: [parceiroId], references: [id], onDelete: SetNull)
+  recompensasUsuario RecompensaUsuario[]
+
+  @@index([ativa])
+  @@index([tipo])
+  @@index([parceiroId])
+  @@map("recompensas")
+}
+
+model RecompensaUsuario {
+  id            String    @id @default(uuid())
+  userId        String    @map("user_id")
+  recompensaId  String    @map("recompensa_id")
+  dataResgate   DateTime  @default(now()) @map("data_resgate")
+  status        String    @default("pendente")
+  codigoVoucher String?   @unique @map("codigo_voucher")
+  dataExpiracao DateTime? @map("data_expiracao")
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recompensa Recompensa @relation(fields: [recompensaId], references: [id], onDelete: Restrict)
+
+  @@index([userId])
+  @@index([recompensaId])
+  @@index([status])
+  @@index([dataResgate])
+  @@map("recompensas_usuario")
+}
+
+model Credito {
+  id              String   @id @default(uuid())
+  userId          String   @unique @map("user_id")
+  saldo           Decimal  @default(0) @db.Decimal(10, 2)
+  dataAtualizacao DateTime @updatedAt @map("data_atualizacao")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("creditos")
+}
+
+model CreditoTransacao {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  tipo            String
+  valor           Decimal  @db.Decimal(10, 2)
+  metodoPagamento String?  @map("metodo_pagamento")
+  status          String   @default("pendente")
+  dataHora        DateTime @default(now()) @map("data_hora")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([dataHora])
+  @@index([tipo])
+  @@map("creditos_transacoes")
+}
+
+model Missao {
+  id                  String    @id @default(uuid())
+  nome                String
+  descricao           String?   @db.Text
+  tipoAcao            String    @map("tipo_acao")
+  quantidadeRequerida Int       @map("quantidade_requerida")
+  recompensaPontos    Int       @map("recompensa_pontos")
+  dataInicio          DateTime  @default(now()) @map("data_inicio")
+  dataFim             DateTime? @map("data_fim")
+  ativa               Boolean   @default(true)
+
+  missoesUsuario        MissaoUsuario[]
+  campanhasPatrocinadas CampanhaPatrocinada[] @relation("CampanhaMissoes")
+
+  @@index([ativa])
+  @@index([tipoAcao])
+  @@index([dataInicio])
+  @@index([dataFim])
+  @@map("missoes")
+}
+
+model MissaoUsuario {
+  id            String    @id @default(uuid())
+  userId        String    @map("user_id")
+  missaoId      String    @map("missao_id")
+  progresso     Int       @default(0)
+  dataInicio    DateTime  @default(now()) @map("data_inicio")
+  dataConclusao DateTime? @map("data_conclusao")
+  status        String    @default("em_progresso")
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  missao Missao @relation(fields: [missaoId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, missaoId])
+  @@index([userId])
+  @@index([missaoId])
+  @@index([status])
+  @@map("missoes_usuario")
+}
+
+model CampanhaPatrocinada {
+  id         String    @id @default(uuid())
+  parceiroId String    @map("parceiro_id")
+  nome       String
+  descricao  String?   @db.Text
+  dataInicio DateTime  @default(now()) @map("data_inicio")
+  dataFim    DateTime? @map("data_fim")
+  ativa      Boolean   @default(true)
+
+  parceiro Parceiro @relation(fields: [parceiroId], references: [id], onDelete: Cascade)
+  missoes  Missao[] @relation("CampanhaMissoes")
+
+  @@index([parceiroId])
+  @@index([ativa])
+  @@index([dataInicio])
+  @@index([dataFim])
+  @@map("campanhas_patrocinadas")
+}
+
+model MetricaDiaria {
+  id                         String   @id @default(uuid())
+  data                       DateTime @unique @db.Date
+  totalUsuariosAtivos        Int      @default(0) @map("total_usuarios_ativos")
+  totalPontosDistribuidos    Int      @default(0) @map("total_pontos_distribuidos")
+  totalRecompensasResgatadas Int      @default(0) @map("total_recompensas_resgatadas")
+  totalTattoosRegistradas    Int      @default(0) @map("total_tattoos_registradas")
+  totalCreditosAdquiridos    Decimal  @default(0) @map("total_creditos_adquiridos") @db.Decimal(10, 2)
+  totalMissoesConcluidas     Int      @default(0) @map("total_missoes_concluidas")
+  dataCriacao                DateTime @default(now()) @map("data_criacao")
+
+  @@index([data])
+  @@map("metricas_diarias")
+}
