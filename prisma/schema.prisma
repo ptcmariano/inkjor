@@ -7,7 +7,7 @@ datasource db {
 }
 
 model User {
-  id          String   @id @default(uuid())
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   email       String   @unique
   nome        String
   foto        String?
@@ -27,8 +27,8 @@ model User {
 }
 
 model Tattoo {
-  id               String    @id @default(uuid())
-  userId           String    @map("user_id")
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId           String    @map("user_id") @db.Uuid
   fotoUrl          String    @map("foto_url")
   localizacaoCorpo String    @map("localizacao_corpo")
   dataAproximada   DateTime? @map("data_aproximada")
@@ -45,13 +45,13 @@ model Tattoo {
 }
 
 model PontosTransacao {
-  id          String   @id @default(uuid())
-  userId      String   @map("user_id")
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
   tipoAcao    String   @map("tipo_acao")
   quantidade  Int
   descricao   String?  @db.Text
   dataHora    DateTime @default(now()) @map("data_hora")
-  tattooIdRef String?  @map("tattoo_id_ref")
+  tattooIdRef String?  @map("tattoo_id_ref") @db.Uuid
 
   user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   tattoo Tattoo? @relation(fields: [tattooIdRef], references: [id], onDelete: SetNull)
@@ -63,7 +63,7 @@ model PontosTransacao {
 }
 
 model Parceiro {
-  id          String   @id @default(uuid())
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   nome        String
   tipo        String
   logoUrl     String?  @map("logo_url")
@@ -79,12 +79,12 @@ model Parceiro {
 }
 
 model Recompensa {
-  id          String   @id @default(uuid())
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   nome        String
   descricao   String?  @db.Text
   tipo        String
   custoPontos Int      @map("custo_pontos")
-  parceiroId  String?  @map("parceiro_id")
+  parceiroId  String?  @map("parceiro_id") @db.Uuid
   estoque     Int      @default(0)
   dataCriacao DateTime @default(now()) @map("data_criacao")
   ativa       Boolean  @default(true)
@@ -99,9 +99,9 @@ model Recompensa {
 }
 
 model RecompensaUsuario {
-  id            String    @id @default(uuid())
-  userId        String    @map("user_id")
-  recompensaId  String    @map("recompensa_id")
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  recompensaId  String    @map("recompensa_id") @db.Uuid
   dataResgate   DateTime  @default(now()) @map("data_resgate")
   status        String    @default("pendente")
   codigoVoucher String?   @unique @map("codigo_voucher")
@@ -118,8 +118,8 @@ model RecompensaUsuario {
 }
 
 model Credito {
-  id              String   @id @default(uuid())
-  userId          String   @unique @map("user_id")
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String   @unique @map("user_id") @db.Uuid
   saldo           Decimal  @default(0) @db.Decimal(10, 2)
   dataAtualizacao DateTime @updatedAt @map("data_atualizacao")
 
@@ -130,8 +130,8 @@ model Credito {
 }
 
 model CreditoTransacao {
-  id              String   @id @default(uuid())
-  userId          String   @map("user_id")
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String   @map("user_id") @db.Uuid
   tipo            String
   valor           Decimal  @db.Decimal(10, 2)
   metodoPagamento String?  @map("metodo_pagamento")
@@ -148,7 +148,7 @@ model CreditoTransacao {
 }
 
 model Missao {
-  id                  String    @id @default(uuid())
+  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   nome                String
   descricao           String?   @db.Text
   tipoAcao            String    @map("tipo_acao")
@@ -169,9 +169,9 @@ model Missao {
 }
 
 model MissaoUsuario {
-  id            String    @id @default(uuid())
-  userId        String    @map("user_id")
-  missaoId      String    @map("missao_id")
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  missaoId      String    @map("missao_id") @db.Uuid
   progresso     Int       @default(0)
   dataInicio    DateTime  @default(now()) @map("data_inicio")
   dataConclusao DateTime? @map("data_conclusao")
@@ -188,8 +188,8 @@ model MissaoUsuario {
 }
 
 model CampanhaPatrocinada {
-  id         String    @id @default(uuid())
-  parceiroId String    @map("parceiro_id")
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  parceiroId String    @map("parceiro_id") @db.Uuid
   nome       String
   descricao  String?   @db.Text
   dataInicio DateTime  @default(now()) @map("data_inicio")
@@ -207,7 +207,7 @@ model CampanhaPatrocinada {
 }
 
 model MetricaDiaria {
-  id                         String   @id @default(uuid())
+  id                         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   data                       DateTime @unique @db.Date
   totalUsuariosAtivos        Int      @default(0) @map("total_usuarios_ativos")
   totalPontosDistribuidos    Int      @default(0) @map("total_pontos_distribuidos")

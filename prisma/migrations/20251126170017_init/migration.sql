@@ -1,7 +1,7 @@
 -- CreateTable
 CREATE TABLE "tattoos" (
-    "id" TEXT NOT NULL,
-    "user_id" TEXT NOT NULL,
+    "id" UUID NOT NULL,
+    "user_id" UUID NOT NULL,
     "foto_url" TEXT NOT NULL,
     "localizacao_corpo" TEXT NOT NULL,
     "data_aproximada" TIMESTAMP(3),
@@ -14,20 +14,20 @@ CREATE TABLE "tattoos" (
 
 -- CreateTable
 CREATE TABLE "pontos_transacoes" (
-    "id" TEXT NOT NULL,
-    "user_id" TEXT NOT NULL,
+    "id" UUID NOT NULL,
+    "user_id" UUID NOT NULL,
     "tipo_acao" TEXT NOT NULL,
     "quantidade" INTEGER NOT NULL,
     "descricao" TEXT,
     "data_hora" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "tattoo_id_ref" TEXT,
+    "tattoo_id_ref" UUID,
 
     CONSTRAINT "pontos_transacoes_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "parceiros" (
-    "id" TEXT NOT NULL,
+    "id" UUID NOT NULL,
     "nome" TEXT NOT NULL,
     "tipo" TEXT NOT NULL,
     "logo_url" TEXT,
@@ -40,12 +40,12 @@ CREATE TABLE "parceiros" (
 
 -- CreateTable
 CREATE TABLE "recompensas" (
-    "id" TEXT NOT NULL,
+    "id" UUID NOT NULL,
     "nome" TEXT NOT NULL,
     "descricao" TEXT,
     "tipo" TEXT NOT NULL,
     "custo_pontos" INTEGER NOT NULL,
-    "parceiro_id" TEXT,
+    "parceiro_id" UUID NOT NULL,
     "estoque" INTEGER NOT NULL DEFAULT 0,
     "data_criacao" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "ativa" BOOLEAN NOT NULL DEFAULT true,
@@ -55,9 +55,9 @@ CREATE TABLE "recompensas" (
 
 -- CreateTable
 CREATE TABLE "recompensas_usuario" (
-    "id" TEXT NOT NULL,
-    "user_id" TEXT NOT NULL,
-    "recompensa_id" TEXT NOT NULL,
+    "id" UUID NOT NULL,
+    "user_id" UUID NOT NULL,
+    "recompensa_id" UUID NOT NULL,
     "data_resgate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "status" TEXT NOT NULL DEFAULT 'pendente',
     "codigo_voucher" TEXT,
@@ -68,8 +68,8 @@ CREATE TABLE "recompensas_usuario" (
 
 -- CreateTable
 CREATE TABLE "creditos" (
-    "id" TEXT NOT NULL,
-    "user_id" TEXT NOT NULL,
+    "id" UUID NOT NULL,
+    "user_id" UUID NOT NULL,
     "saldo" DECIMAL(10,2) NOT NULL DEFAULT 0,
     "data_atualizacao" TIMESTAMP(3) NOT NULL,
 
@@ -78,8 +78,8 @@ CREATE TABLE "creditos" (
 
 -- CreateTable
 CREATE TABLE "creditos_transacoes" (
-    "id" TEXT NOT NULL,
-    "user_id" TEXT NOT NULL,
+    "id" UUID NOT NULL,
+    "user_id" UUID NOT NULL,
     "tipo" TEXT NOT NULL,
     "valor" DECIMAL(10,2) NOT NULL,
     "metodo_pagamento" TEXT,
@@ -91,7 +91,7 @@ CREATE TABLE "creditos_transacoes" (
 
 -- CreateTable
 CREATE TABLE "missoes" (
-    "id" TEXT NOT NULL,
+    "id" UUID NOT NULL,
     "nome" TEXT NOT NULL,
     "descricao" TEXT,
     "tipo_acao" TEXT NOT NULL,
@@ -106,9 +106,9 @@ CREATE TABLE "missoes" (
 
 -- CreateTable
 CREATE TABLE "missoes_usuario" (
-    "id" TEXT NOT NULL,
-    "user_id" TEXT NOT NULL,
-    "missao_id" TEXT NOT NULL,
+    "id" UUID NOT NULL,
+    "user_id" UUID NOT NULL,
+    "missao_id" UUID NOT NULL,
     "progresso" INTEGER NOT NULL DEFAULT 0,
     "data_inicio" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "data_conclusao" TIMESTAMP(3),
@@ -119,8 +119,8 @@ CREATE TABLE "missoes_usuario" (
 
 -- CreateTable
 CREATE TABLE "campanhas_patrocinadas" (
-    "id" TEXT NOT NULL,
-    "parceiro_id" TEXT NOT NULL,
+    "id" UUID NOT NULL,
+    "parceiro_id" UUID NOT NULL,
     "nome" TEXT NOT NULL,
     "descricao" TEXT,
     "data_inicio" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -132,7 +132,7 @@ CREATE TABLE "campanhas_patrocinadas" (
 
 -- CreateTable
 CREATE TABLE "metricas_diarias" (
-    "id" TEXT NOT NULL,
+    "id" UUID NOT NULL,
     "data" DATE NOT NULL,
     "total_usuarios_ativos" INTEGER NOT NULL DEFAULT 0,
     "total_pontos_distribuidos" INTEGER NOT NULL DEFAULT 0,
@@ -147,10 +147,10 @@ CREATE TABLE "metricas_diarias" (
 
 -- CreateTable
 CREATE TABLE "_CampanhaMissoes" (
-    "A" TEXT NOT NULL,
-    "B" TEXT NOT NULL,
+    "campanha" UUID NOT NULL,
+    "missao" UUID NOT NULL,
 
-    CONSTRAINT "_CampanhaMissoes_AB_pkey" PRIMARY KEY ("A","B")
+    CONSTRAINT "_CampanhaMissoes_pkey" PRIMARY KEY ("campanha","missao")
 );
 
 -- CreateIndex
@@ -256,7 +256,7 @@ CREATE UNIQUE INDEX "metricas_diarias_data_key" ON "metricas_diarias"("data");
 CREATE INDEX "metricas_diarias_data_idx" ON "metricas_diarias"("data");
 
 -- CreateIndex
-CREATE INDEX "_CampanhaMissoes_B_index" ON "_CampanhaMissoes"("B");
+CREATE INDEX "_CampanhaMissoes_missao_index" ON "_CampanhaMissoes"("missao");
 
 -- AddForeignKey
 ALTER TABLE "tattoos" ADD CONSTRAINT "tattoos_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -292,7 +292,7 @@ ALTER TABLE "missoes_usuario" ADD CONSTRAINT "missoes_usuario_missao_id_fkey" FO
 ALTER TABLE "campanhas_patrocinadas" ADD CONSTRAINT "campanhas_patrocinadas_parceiro_id_fkey" FOREIGN KEY ("parceiro_id") REFERENCES "parceiros"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "_CampanhaMissoes" ADD CONSTRAINT "_CampanhaMissoes_A_fkey" FOREIGN KEY ("A") REFERENCES "campanhas_patrocinadas"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "_CampanhaMissoes" ADD CONSTRAINT "_CampanhaMissoes_campanha_fkey" FOREIGN KEY ("campanha") REFERENCES "campanhas_patrocinadas"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "_CampanhaMissoes" ADD CONSTRAINT "_CampanhaMissoes_B_fkey" FOREIGN KEY ("B") REFERENCES "missoes"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "_CampanhaMissoes" ADD CONSTRAINT "_CampanhaMissoes_missao_fkey" FOREIGN KEY ("missao") REFERENCES "missoes"("id") ON DELETE CASCADE ON UPDATE CASCADE;
