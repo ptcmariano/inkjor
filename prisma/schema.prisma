@@ -33,14 +33,17 @@ model Tattoo {
   localizacaoCorpo String    @map("localizacao_corpo")
   dataAproximada   DateTime? @map("data_aproximada")
   significado      String?   @db.Text
+  idempotencyHash  String?   @map("idempotency_hash")
   dataCriacao      DateTime  @default(now()) @map("data_criacao")
   dataAtualizacao  DateTime  @updatedAt @map("data_atualizacao")
 
   user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   pontosTransacoes PontosTransacao[]
 
+  @@unique([userId, idempotencyHash])
   @@index([userId])
   @@index([dataCriacao])
+  @@index([idempotencyHash])
   @@map("tattoos")
 }
 
