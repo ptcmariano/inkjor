@@ -12,6 +12,50 @@ interface CreateTattooBody {
   significado?: string;
 }
 
+export async function GET(request: NextRequest) {
+  try {
+    const supabase = await createSupabaseServer();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Não autenticado' },
+        { status: 401 }
+      );
+    }
+
+    const tattoos = await prisma.tattoo.findMany({
+      where: {
+        userId: user.id,
+      },
+      orderBy: {
+        dataCriacao: 'desc',
+      },
+      select: {
+        id: true,
+        fotoUrl: true,
+        localizacaoCorpo: true,
+        dataAproximada: true,
+        significado: true,
+        dataCriacao: true,
+        dataAtualizacao: true,
+      },
+    });
+
+    return NextResponse.json({
+      tattoos,
+      total: tattoos.length,
+    });
+
+  } catch (error) {
+    console.error('Erro ao listar tattoos:', error);
+    return NextResponse.json(
+      { error: 'Erro interno do servidor' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createSupabaseServer();
